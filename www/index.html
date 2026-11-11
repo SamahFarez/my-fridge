@@ -7,15 +7,15 @@
 <style>
 /* Layout: single-column phone app, sticky header, fixed bottom tab bar with five screens. Fully offline. */
 :root{
-  --bg:#F3F6F2; --surface:#FFFFFF; --sunk:#E6ECE5; --ink:#15231B; --muted:#5E6E64; --line:#D3DDD3;
-  --green:#1E5B42; --green-soft:#D9EADF; --saffron:#D99A12; --saffron-soft:#FBEFCF; --alert:#B5432D; --alert-soft:#F7E1DA;
+  --bg:#FBF5F7; --surface:#FFFFFF; --sunk:#F4E8ED; --ink:#2B1C24; --muted:#7D6872; --line:#EDDDE4;
+  --green:#B0517A; --green-soft:#F8E3EC; --saffron:#7FB6E0; --saffron-soft:#E3F0FA; --alert:#B54A3A; --alert-soft:#FBE6E1;
   --display:"Avenir Next","Google Sans",Roboto,system-ui,sans-serif;
   --body:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;
   --r:14px; color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
-  --bg:#0F1713; --surface:#17221C; --sunk:#1F2C25; --ink:#E7EFE9; --muted:#9BAEA2; --line:#2C3B33;
-  --green:#7CCBA2; --green-soft:#1F3A2D; --saffron:#F2B940; --saffron-soft:#3A2F14; --alert:#F08A72; --alert-soft:#3D221B; color-scheme:dark}}
+  --bg:#1A1216; --surface:#241A1F; --sunk:#2F232A; --ink:#F5E9EE; --muted:#BAA4AF; --line:#3A2C34;
+  --green:#EE9DBC; --green-soft:#4A2637; --saffron:#8EC3EA; --saffron-soft:#1F3446; --alert:#F0907A; --alert-soft:#3F231D; color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{background:var(--bg);margin:0}
 body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top,0px)}
@@ -83,8 +83,17 @@ select.crous-sel{background:var(--saffron-soft)}
 .mcard>button{width:100%;text-align:left;background:none;border:0;padding:14px;display:flex;flex-direction:column;gap:6px}
 .mtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .mname{font-weight:700;font-size:1.02rem}
-.eff{flex:none;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:6px;padding:3px 7px}
-.eff.nocook{background:var(--green-soft);color:var(--green)} .eff.quick{background:var(--saffron-soft);color:var(--ink)} .eff.batch{background:var(--sunk);color:var(--ink)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{white-space:nowrap;flex:none;font-size:.72rem;font-weight:700;border-radius:6px;padding:3px 7px;background:var(--sunk);color:var(--ink)}
+.tag.time{background:var(--saffron-soft)} .tag.fav{background:var(--green-soft);color:var(--green)} .tag.batch{background:var(--sunk)}
+.meal.snack{padding:10px 14px} .meal.snack .tick{width:24px;height:24px} .meal.snack .what span{font-weight:500;font-size:.95rem}
+.rate{display:flex;gap:6px} .rate{flex:none} .rate .pill{padding:5px 11px;font-size:.8rem;white-space:nowrap}
+.rate .pill.no{background:var(--alert-soft);border-color:var(--alert-soft);color:var(--alert)}
+.idea{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.idea b{display:block;font-weight:600}
+.remrow{display:grid;grid-template-columns:1fr 128px 50px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.remrow:first-child{border-top:0}
+.scroller{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none} .scroller::-webkit-scrollbar{display:none} .scroller .pill{flex:none}
 .ings{font-size:.85rem;color:var(--muted)} .ings .miss{color:var(--alert);font-weight:600}
 .mbody{padding:0 14px 14px;font-size:.93rem;display:flex;flex-direction:column;gap:10px}
 .mbody ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
@@ -120,178 +129,330 @@ nav.tabs .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--
 
 <script>
 /* ================= Defaults ================= */
-const DEFAULT_ESSENTIALS = ["Eggs","Milk","Plain yogurt","Cheese","Hummus","Bread / pita","Tuna cans","Chickpeas (can)","Lentils","Rice","Pasta","Couscous","Oats","Chopped tomatoes (can)","Olive oil","Spices","Peanut butter","Nuts","Dates","Onions","Garlic","Bananas","Frozen vegetables"];
-const MEALS = [
- {id:"m1",name:"Hummus & veggie wrap",e:"nocook",ing:["Bread / pita","Hummus","Cucumber","Tomatoes","Olives"],steps:["Spread hummus on the bread.","Add sliced cucumber, tomato and olives.","Roll up. Add cheese if you want it more filling."]},
- {id:"m2",name:"Overnight oats with dates & banana",e:"nocook",ing:["Oats","Milk","Bananas","Dates","Peanut butter"],steps:["Evening: oats + milk in a jar, chopped dates on top.","Fridge overnight.","Morning: add banana and a spoon of peanut butter."]},
- {id:"m3",name:"Tuna & white bean salad",e:"nocook",ing:["Tuna cans","Beans (can)","Onions","Lemon","Olive oil"],steps:["Drain tuna and beans.","Mix with chopped onion, lemon juice, olive oil, salt.","Eat with bread. Keeps 2 days in a box."]},
- {id:"m4",name:"Labneh & za'atar plate",e:"nocook",ing:["Labneh","Spices","Olive oil","Bread / pita","Olives","Cucumber"],steps:["Labneh on a plate, olive oil and za'atar on top.","Add olives, cucumber and bread. A boiled egg if you have one."]},
- {id:"m5",name:"Yogurt bowl",e:"nocook",ing:["Plain yogurt","Granola","Honey","Nuts","Bananas"],steps:["Yogurt in a bowl.","Top with granola, nuts, banana and honey."]},
- {id:"m6",name:"Shakshuka",e:"quick",ing:["Eggs","Chopped tomatoes (can)","Onions","Bell pepper","Spices","Bread / pita"],steps:["Fry chopped onion and pepper in oil, 4 min.","Add tomatoes, cumin, paprika, salt. Simmer 3 min.","Crack in eggs, cover 4–5 min. Eat with bread."]},
- {id:"m7",name:"Couscous with chickpeas",e:"quick",ing:["Couscous","Chickpeas (can)","Frozen vegetables","Olive oil","Spices"],steps:["Pour boiling water over couscous, cover 5 min.","Warm chickpeas and frozen veg in a pan with oil and cumin.","Mix together. Box half for tomorrow."]},
- {id:"m8",name:"Tuna tomato pasta",e:"quick",ing:["Pasta","Tuna cans","Chopped tomatoes (can)","Garlic","Olive oil"],steps:["Boil pasta.","Garlic in oil 1 min, add tomatoes and tuna, 5 min.","Mix with pasta. Cheese on top if you have it."]},
- {id:"m9",name:"Halloumi pita",e:"quick",ing:["Halloumi","Bread / pita","Tomatoes","Cucumber","Lemon"],steps:["Fry halloumi slices 2 min each side.","Stuff into warm pita with tomato, cucumber, lemon."]},
- {id:"m10",name:"Egg & cheese wrap",e:"quick",ing:["Eggs","Cheese","Bread / pita"],steps:["Scramble 2–3 eggs with cheese.","Wrap in bread. Done in 5 minutes."]},
- {id:"m11",name:"Lentil soup (shorba)",e:"batch",ing:["Lentils","Onions","Garlic","Spices","Lemon","Olive oil"],steps:["Fry onion and garlic in oil.","Add rinsed lentils, cumin, salt and water to cover by 3 fingers.","Simmer 25 min, mash or blend. Lemon on top. Lasts 4 days."]},
- {id:"m12",name:"Oven chicken & rice",e:"batch",ing:["Halal chicken","Rice","Onions","Spices","Frozen vegetables"],steps:["Rice + chopped onion + frozen veg in an oven dish, spices, salt.","Add 2× water of rice, chicken pieces on top.","Cover with foil, 200°C, 50 min. Split into 3–4 boxes."]},
- {id:"m13",name:"Mujaddara (lentils & rice)",e:"batch",ing:["Lentils","Rice","Onions","Olive oil","Spices","Plain yogurt"],steps:["Boil lentils 10 min.","Add rice, cumin, salt, more water; cook 15 min.","Top with lots of fried onions. Eat with yogurt. Lasts 3–4 days."]},
- {id:"m14",name:"Beef & bean chili",e:"batch",ing:["Halal minced beef","Beans (can)","Chopped tomatoes (can)","Onions","Spices","Rice"],steps:["Brown onion and minced beef.","Add beans, tomatoes, paprika, cumin. Simmer 25 min.","Eat with rice or bread. Freezes well."]}
+const DEFAULT_ESSENTIALS=["Eggs","Cucumber","Tomatoes","Kiwis","Fruit","Almonds","Dates","Milk","Plain yogurt","Cheese","Hummus","Bread / pita","Wraps","Tuna cans","Halal chicken","Chickpeas (can)","Lentils","Rice","Pasta","Couscous","Oats","Chopped tomatoes (can)","Olive oil","Spices","Onions","Garlic","Frozen vegetables"];
+const CUISINES=["Algerian","Middle Eastern","Turkish","French","Italian","Asian","Mexican","Everyday"];
+/* t = minutes, b = good for breakfast, batch = cook once, eat several days */
+const MEALS=[
+ {id:"x0",name:"Boiled eggs, cucumber, tomato & kiwi",c:"Everyday",t:12,b:1,ing:["Eggs","Cucumber","Tomatoes","Kiwis"],steps:["Boil 2 eggs for 9–10 min, then cool them in cold water.","Slice cucumber and tomato, salt and olive oil on top.","Kiwi on the side. Your usual breakfast."]},
+ {id:"a1",name:"Dates & lben",c:"Algerian",t:2,b:1,ing:["Dates","Lben"],steps:["Pour a glass of lben (lait fermenté).","Eat with a few dates. Classic breakfast or snack."]},
+ {id:"a2",name:"Mesfouf (sweet couscous)",c:"Algerian",t:10,b:1,ing:["Couscous","Butter","Raisins","Dates","Milk"],steps:["Pour boiling water over couscous with a pinch of salt, cover 5 min.","Fluff with a fork, stir in a little butter.","Top with raisins or chopped dates. Glass of milk on the side."]},
+ {id:"a3",name:"Chakchouka",c:"Algerian",t:20,ing:["Bell pepper","Onions","Chopped tomatoes (can)","Eggs","Spices","Bread / pita"],steps:["Fry onion and sliced peppers in olive oil, 8 min.","Add tomatoes, garlic, paprika, salt. Cook 7 min.","Crack eggs on top, cover until set. Eat with bread."]},
+ {id:"a4",name:"Loubia (white bean stew)",c:"Algerian",t:25,batch:1,ing:["Beans (can)","Chopped tomatoes (can)","Onions","Garlic","Spices","Olive oil","Bread / pita"],steps:["Fry onion and garlic in oil.","Add tomatoes, cumin, paprika, salt and a glass of water. Simmer 10 min.","Add drained beans, 10 min more. Bread to dip. Lasts 3 days."]},
+ {id:"a5",name:"Hmiss with tuna",c:"Algerian",t:20,ing:["Bell pepper","Tomatoes","Garlic","Olive oil","Tuna cans","Bread / pita"],steps:["Char peppers in a pan until soft, peel and chop.","Cook with chopped tomato and garlic in oil, 10 min.","Top with tuna. Warm or cold with bread."]},
+ {id:"a6",name:"Garantita (karantika)",c:"Algerian",t:45,ing:["Chickpea flour","Eggs","Olive oil","Spices"],steps:["Whisk chickpea flour with 3× its volume of water, oil, salt, cumin. Rest 10 min.","Pour into an oiled dish, brush beaten egg on top.","Bake at 200°C for 30 min. Eat in bread."]},
+ {id:"a7",name:"Bourek with chicken",c:"Algerian",t:25,ing:["Brick pastry","Halal chicken","Onions","Eggs","Cheese","Spices"],steps:["Cook small pieces of chicken with onion, salt, pepper, a pinch of cinnamon.","Put a spoon on a brick sheet with a little cheese, roll like a cigar.","Bake at 200°C for 12 min or pan-fry until golden."]},
+ {id:"a8",name:"Tajine zitoune (chicken & olives)",c:"Algerian",t:45,batch:1,ing:["Halal chicken","Olives","Onions","Garlic","Lemon","Spices"],steps:["Brown chicken pieces with onion and garlic in oil, salt, pepper, cinnamon.","Add a glass of water, cover, simmer 25 min.","Add rinsed olives and lemon juice, 10 min more. Lasts 3 days."]},
+ {id:"a9",name:"Chorba frik",c:"Algerian",t:60,batch:1,ing:["Frik","Halal chicken","Onions","Chopped tomatoes (can)","Chickpeas (can)","Coriander","Spices"],steps:["Brown chicken and onion in oil with paprika, cinnamon, salt.","Add tomatoes and 1.5 L water, simmer 20 min.","Add rinsed frik and chickpeas, 25 min more. Coriander on top. Lasts 4 days."]},
+ {id:"a10",name:"Easy chicken couscous",c:"Algerian",t:60,batch:1,ing:["Couscous","Halal chicken","Frozen vegetables","Chickpeas (can)","Onions","Chopped tomatoes (can)","Spices"],steps:["Brown chicken and onion, add tomatoes, ras el hanout, water.","Add vegetables and chickpeas, simmer 35 min.","Prepare couscous with boiling water and pour the sauce over. Lasts 3 days."]},
+ {id:"a11",name:"Adess (lentil stew)",c:"Algerian",t:35,batch:1,ing:["Lentils","Onions","Garlic","Chopped tomatoes (can)","Spices","Olive oil"],steps:["Fry onion and garlic in oil, add tomatoes and cumin.","Add rinsed lentils and water to cover by 3 fingers.","Simmer 25 min. Lasts 4 days."]},
+ {id:"m1",name:"Hummus & veggie wrap",c:"Middle Eastern",t:5,ing:["Wraps","Hummus","Cucumber","Tomatoes","Olives"],steps:["Spread hummus on the wrap.","Add sliced cucumber, tomato and olives.","Roll up. Add cheese or chicken for a bigger meal."]},
+ {id:"m2",name:"Labneh & za'atar plate",c:"Middle Eastern",t:5,b:1,ing:["Labneh","Spices","Olive oil","Bread / pita","Cucumber","Olives"],steps:["Labneh on a plate, olive oil and za'atar on top.","Add cucumber, olives and bread. A boiled egg if you have one."]},
+ {id:"m3",name:"Chicken shawarma wrap",c:"Middle Eastern",t:20,ing:["Halal chicken","Wraps","Plain yogurt","Garlic","Cucumber","Tomatoes","Spices"],steps:["Cut chicken in strips, mix with cumin, paprika, garlic, lemon, salt.","Pan-fry 8–10 min until golden.","Wrap with yogurt-garlic sauce, cucumber and tomato. Cook extra for tomorrow."]},
+ {id:"m4",name:"Falafel wrap",c:"Middle Eastern",t:15,ing:["Falafel (frozen)","Wraps","Hummus","Tomatoes","Cucumber"],steps:["Heat falafel in the oven or pan, 10 min.","Wrap with hummus, tomato and cucumber."]},
+ {id:"m5",name:"Halloumi pita",c:"Middle Eastern",t:10,ing:["Halloumi","Bread / pita","Tomatoes","Cucumber","Lemon"],steps:["Fry halloumi slices 2 min each side.","Stuff into warm pita with tomato, cucumber and lemon."]},
+ {id:"m6",name:"Mujaddara (lentils & rice)",c:"Middle Eastern",t:45,batch:1,ing:["Lentils","Rice","Onions","Olive oil","Spices","Plain yogurt"],steps:["Boil lentils 10 min.","Add rice, cumin, salt and more water, cook 15 min.","Top with lots of fried onions, eat with yogurt. Lasts 3–4 days."]},
+ {id:"t1",name:"Menemen",c:"Turkish",t:10,b:1,ing:["Eggs","Tomatoes","Bell pepper","Olive oil","Bread / pita"],steps:["Soften chopped pepper in oil, 3 min.","Add chopped tomatoes, 3 min.","Stir in beaten eggs gently until just set. Eat with bread."]},
+ {id:"f1",name:"Cheese omelette",c:"French",t:5,b:1,ing:["Eggs","Cheese","Butter"],steps:["Beat 2–3 eggs with salt.","Pour into a buttered pan, add cheese, fold when almost set."]},
+ {id:"f2",name:"Tuna sandwich",c:"French",t:5,ing:["Bread / pita","Tuna cans","Tomatoes","Cucumber"],steps:["Mix tuna with a little olive oil or mayo, salt, pepper.","Fill bread with tuna, tomato and cucumber. Your CROUS favourite, at home."]},
+ {id:"f3",name:"Salade niçoise",c:"French",t:15,ing:["Tuna cans","Eggs","Tomatoes","Olives","Cucumber","Olive oil"],steps:["Boil 2 eggs for 9 min.","Plate tomato, cucumber, olives and tuna.","Add the halved eggs, olive oil, salt. Bread on the side."]},
+ {id:"i1",name:"Tuna tomato pasta",c:"Italian",t:15,ing:["Pasta","Tuna cans","Chopped tomatoes (can)","Garlic","Olive oil"],steps:["Boil pasta.","Garlic in oil 1 min, add tomatoes and tuna, 5 min.","Mix with pasta. Cheese on top if you have it."]},
+ {id:"i2",name:"Pasta pesto & chicken",c:"Italian",t:15,ing:["Pasta","Pesto","Halal chicken","Cheese"],steps:["Boil pasta.","Pan-fry chicken pieces 8 min.","Mix pasta with pesto and chicken, cheese on top."]},
+ {id:"i3",name:"Tomato mozzarella plate",c:"Italian",t:5,ing:["Tomatoes","Mozzarella","Olive oil","Bread / pita"],steps:["Slice tomato and mozzarella.","Olive oil, salt, and bread to dip."]},
+ {id:"s1",name:"Egg fried rice",c:"Asian",t:15,ing:["Rice","Eggs","Frozen vegetables","Soy sauce","Garlic"],steps:["Best with yesterday's rice. Fry garlic and frozen veg 4 min.","Add rice, push to one side, scramble 2 eggs.","Mix with soy sauce. Add chicken if you have some."]},
+ {id:"s2",name:"Chicken noodles",c:"Asian",t:15,ing:["Noodles","Halal chicken","Frozen vegetables","Soy sauce","Garlic"],steps:["Cook noodles.","Pan-fry chicken strips with garlic, 7 min, add frozen veg 3 min.","Toss everything with soy sauce."]},
+ {id:"x1",name:"Chicken & cheese quesadilla",c:"Mexican",t:10,ing:["Wraps","Halal chicken","Cheese","Spices"],steps:["Leftover or pan-fried chicken on half a wrap with cheese and paprika.","Fold and toast in a dry pan 2–3 min each side."]},
+ {id:"x2",name:"Beef & bean chili",c:"Mexican",t:45,batch:1,ing:["Halal minced beef","Beans (can)","Chopped tomatoes (can)","Onions","Spices","Rice"],steps:["Brown onion and minced beef.","Add beans, tomatoes, paprika, cumin. Simmer 25 min.","Eat with rice or in a wrap. Freezes well."]},
+ {id:"e1",name:"Overnight oats with kiwi & dates",c:"Everyday",t:5,b:1,ing:["Oats","Milk","Kiwis","Dates","Almonds"],steps:["Evening: oats + milk in a jar, chopped dates on top.","Fridge overnight.","Morning: add kiwi and almonds. Breakfast in the bag."]},
+ {id:"e2",name:"Yogurt, fruit & almond bowl",c:"Everyday",t:3,b:1,ing:["Plain yogurt","Fruit","Almonds","Honey"],steps:["Yogurt in a bowl.","Top with chopped fruit, almonds and a little honey."]},
+ {id:"e3",name:"Egg & cheese wrap",c:"Everyday",t:5,b:1,ing:["Eggs","Cheese","Wraps"],steps:["Scramble 2–3 eggs with cheese.","Roll in a wrap. Done in 5 minutes."]},
+ {id:"e4",name:"Couscous with chickpeas",c:"Everyday",t:10,ing:["Couscous","Chickpeas (can)","Frozen vegetables","Olive oil","Spices"],steps:["Pour boiling water over couscous, cover 5 min.","Warm chickpeas and frozen veg with oil and cumin.","Mix together. Box half for tomorrow."]},
+ {id:"e5",name:"Oven chicken & rice",c:"Everyday",t:60,batch:1,ing:["Halal chicken","Rice","Onions","Spices","Frozen vegetables"],steps:["Rice, chopped onion and frozen veg in an oven dish with spices and salt.","Add 2× the rice's volume of water, chicken pieces on top.","Cover with foil, 200°C for 50 min. Split into 3–4 boxes."]}
 ];
+const SNACKS=["A handful of almonds","An apple or a pear","Dates with a few almonds","Kiwi and some almonds","Yogurt with fruit","Clementines or an orange","Cheese and a piece of bread","Lben or milk with dates"];
+const SLOTS=[["b","Breakfast",0],["s1","Morning snack",1],["l","Lunch",0],["s2","Afternoon snack",1],["d","Dinner",0]];
+const MAIN=["b","l","d"];
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const EFF={nocook:"No cooking",quick:"10 min",batch:"Batch cook"};
-/* Capacitor weekday numbers: 1=Sun, 2=Mon … 7=Sat */
+const TIMEF=[[0,"Any time"],[5,"5 min"],[15,"15 min"],[30,"30 min"],[60,"1 hour"]];
 const WEEKDAYS=[[7,"Saturday"],[1,"Sunday"],[2,"Monday"],[3,"Tuesday"],[4,"Wednesday"],[5,"Thursday"],[6,"Friday"]];
+const DEFAULT_EAT={on:true,b:{on:true,t:"06:20"},s1:{on:true,t:"10:00"},l:{on:true,t:"12:30"},s2:{on:true,t:"16:00"},d:{on:true,t:"20:30"}};
 
 /* ================= Dates ================= */
 const key=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const dow=d=>(d.getDay()+6)%7;
 function weekStartKey(d){const x=new Date(d);x.setDate(x.getDate()-dow(x));return key(x)}
-function weekDates(){const s=new Date();s.setDate(s.getDate()-dow(s));return [...Array(7)].map((_,i)=>{const x=new Date(s);x.setDate(s.getDate()+i);return x})}
+function weekRange(wk){const s=new Date(wk+"T12:00:00");return [...Array(7)].map((_,i)=>{const x=new Date(s);x.setDate(s.getDate()+i);return x})}
+const weekDates=()=>weekRange(weekStartKey(new Date()));
+const capWeekday=i=>((i+1)%7)+1; // Mon=0 → Capacitor 2 … Sun=6 → 1
 
 /* ================= State (stored only on this phone) ================= */
+/* stock: [{k: matching name, n: product label, code, at}]  log[date][slot]: true | mealId | "crous" | "out"
+   used[weekStart]: {name:true}  rate[mealId]: 1 like / -1 not for me  custom: user meals  codes: barcode memory */
 const LS="roomfridge.app.v1";
-function fresh(){return {essentials:[...DEFAULT_ESSENTIALS],stock:[],meals:MEALS.map(m=>({...m})),crousDays:[3,4],plan:{weekStart:weekStartKey(new Date()),days:{}},log:{},reminder:{on:true,day:1,time:"18:00"},firstRun:true}}
+function fresh(){return {essentials:[...DEFAULT_ESSENTIALS],stock:[],custom:[],rate:{x0:1},crousDays:[3,4],plan:{weekStart:weekStartKey(new Date()),days:{}},log:{},used:{},codes:{},reminder:{on:true,day:1,time:"18:00"},eat:JSON.parse(JSON.stringify(DEFAULT_EAT)),firstRun:true}}
 function load(){try{const t=localStorage.getItem(LS);return t?JSON.parse(t):null}catch(e){return null}}
 function normalize(s){
   if(!s||!Array.isArray(s.essentials)) s=fresh();
-  s.stock=s.stock||[]; s.log=s.log||{}; s.crousDays=s.crousDays||[3,4]; s.meals=s.meals||MEALS.map(m=>({...m}));
+  s.stock=(s.stock||[]).map(x=>typeof x==="string"?{k:x,at:key(new Date())}:x);
+  s.log=s.log||{}; s.used=s.used||{}; s.codes=s.codes||{}; s.rate=s.rate||{}; s.crousDays=s.crousDays||[3,4];
+  s.custom=s.custom||(s.meals||[]).filter(m=>m.custom); delete s.meals;
   s.reminder=s.reminder||{on:true,day:1,time:"18:00"};
+  s.eat=Object.assign(JSON.parse(JSON.stringify(DEFAULT_EAT)),s.eat||{});
   if(!s.plan||s.plan.weekStart!==weekStartKey(new Date())) s.plan={weekStart:weekStartKey(new Date()),days:{}};
+  const ks=Object.keys(s.used).sort();while(ks.length>8)delete s.used[ks.shift()];
   return s;
 }
 let S=normalize(load());
 function persist(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
 
-const norm=s=>s.trim().toLowerCase();
-const inStock=name=>S.stock.some(x=>norm(x)===norm(name));
+const norm=s=>String(s).trim().toLowerCase();
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const allMeals=()=>MEALS.concat(S.custom);
+const meal=id=>allMeals().find(m=>m.id===id);
+const inStock=name=>S.stock.some(x=>norm(x.k)===norm(name));
 const isEssential=name=>S.essentials.some(x=>norm(x)===norm(name));
 const missingEssentials=()=>S.essentials.filter(e=>!inStock(e));
-const meal=id=>S.meals.find(m=>m.id===id);
-function plannedMeals(){const ids=new Set();Object.values(S.plan.days).forEach(d=>["b","l","d"].forEach(k=>{const v=d&&d[k];if(v&&v[0]==="m")ids.add(v)}));return [...ids].map(meal).filter(Boolean)}
+const canMake=m=>m.ing.every(inStock);
+function plannedMeals(){const ids=new Set();Object.values(S.plan.days).forEach(d=>Object.values(d||{}).forEach(v=>{if(v&&meal(v))ids.add(v)}));return [...ids].map(meal)}
 function shoppingList(){
   const out=new Map();
   missingEssentials().forEach(n=>out.set(norm(n),{name:n,why:"Essential"}));
   plannedMeals().forEach(m=>m.ing.forEach(n=>{if(inStock(n))return;const k=norm(n),ex=out.get(k);out.set(k,{name:ex?ex.name:n,why:ex?ex.why+" · "+m.name:"For "+m.name})}));
   return [...out.values()];
 }
-const canMake=m=>m.ing.every(inStock);
-function addToStock(names){names.map(s=>s.trim()).filter(Boolean).forEach(n=>{if(!inStock(n))S.stock.push(cap(n))})}
-const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function addToStock(names){names.map(s=>s.trim()).filter(Boolean).forEach(n=>{if(!inStock(n))S.stock.push({k:cap(n),at:key(new Date())})})}
+function markUsed(name){const wk=weekStartKey(new Date());S.used[wk]=S.used[wk]||{};S.used[wk][cap(name)]=true}
 
-/* ================= Notifications (phone-local, no internet) ================= */
-const LN=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications)||null;
+/* ================= Learning what you like (all on the phone) ================= */
+function timesEaten(){const c={};Object.values(S.log).forEach(l=>Object.values(l||{}).forEach(v=>{if(typeof v==="string"&&meal(v))c[v]=(c[v]||0)+1}));return c}
+function score(m,te){const r=S.rate[m.id]||0;return (r===1?6:0)+Math.min(te[m.id]||0,4)+(canMake(m)?3:0)+(m.t<=15?1:0)}
+function ranked(filterFn){const te=timesEaten();return allMeals().filter(m=>S.rate[m.id]!==-1&&(!filterFn||filterFn(m))).sort((a,b)=>score(b,te)-score(a,te)||a.t-b.t)}
+
+/* ================= Week review (regular meals + variety, no calorie counting) ================= */
+const GROUPS=[
+ ["protein","Protein",/egg|oeuf|œuf|tuna|thon|chicken|poulet|beef|boeuf|bœuf|mince|viande|lentil|lentille|chickpea|pois chiche|bean|haricot|hummus|houmous|falafel|fish|poisson|sardine|salmon|saumon|halloumi/,"Add eggs, chicken, tuna or lentils to a couple of meals."],
+ ["grains","Bread & grains",/bread|pain|pita|wrap|rice|riz|pasta|pâtes|pates|noodle|couscous|semoule|frik|\boat|avoine|granola|muesli|brick/,"Bread, wraps, rice or couscous give steady energy. Build meals around one."],
+ ["fruitveg","Fruit & veg",/kiwi|fruit|apple|pomme|pear|poire|orange|clementine|\bdates?\b|datte|tomato|tomate|cucumber|concombre|pepper|poivron|onion|oignon|veg|légume|legume|lemon|citron|salad|salade|carrot|carotte|spinach|épinard|raisin/,"Kiwis, cucumber, tomatoes and frozen veg are the easiest."],
+ ["dairy","Dairy",/milk|lait|lben|yogurt|yaourt|cheese|fromage|labneh|halloumi|mozzarella|skyr|butter|beurre/,"A yogurt bowl, lben or cheese in a wrap covers this quickly."],
+ ["fats","Healthy fats",/\boil\b|huile|almond|amande|nut|noix|cajou|peanut|cacahu|olive|pesto/,"Almonds, olive oil and olives add energy without making a meal bigger."]
+];
+function review(wk){
+  const today=key(new Date()), counted=weekRange(wk).filter(d=>key(d)<=today);
+  const slots={b:0,l:0,d:0}; let eaten=0, snacks=0;
+  const usedNames=new Set(Object.keys(S.used[wk]||{})), groups=new Set();
+  counted.forEach(d=>{const l=S.log[key(d)]||{};
+    ["s1","s2"].forEach(s=>{if(l[s]){snacks++}});
+    MAIN.forEach(s=>{const v=l[s];if(!v)return;eaten++;slots[s]++;
+      if(v==="crous")["protein","grains","fruitveg"].forEach(g=>groups.add(g));
+      else{const m=meal(v);if(m)m.ing.forEach(n=>usedNames.add(n))}})});
+  usedNames.forEach(n=>GROUPS.forEach(([g,,re])=>{if(re.test(norm(n)))groups.add(g)}));
+  const skipped=Object.entries(slots).map(([s,c])=>[s,counted.length-c]).sort((a,b)=>b[1]-a[1])[0];
+  const notUsed=S.stock.filter(x=>![...usedNames].some(u=>norm(u)===norm(x.k)));
+  return {days:counted.length,eaten,total:counted.length*3,snacks,skipped,used:[...usedNames].sort(),groups,notUsed};
+}
+const SLOTNAME={b:"breakfast",l:"lunch",d:"dinner"};
+const SKIPTIP={b:"Boil eggs the night before, or prepare overnight oats, so breakfast is ready.",l:"On non-CROUS days, box a portion of your batch meal the night before.",d:"Keep one 5-minute dinner ready for tired evenings: a wrap, an omelette, a tuna sandwich."};
+function suggestions(r){
+  const out=[];
+  if(r.total&&r.eaten>=r.total) out.push("You ate every meal. Keep this rhythm going.");
+  else if(r.total){const [s,c]=r.skipped;if(c>0)out.push(`Eat more often: ${SLOTNAME[s]} was skipped most (${c} time${c>1?"s":""}). ${SKIPTIP[s]}`)}
+  if(r.days&&r.snacks<r.days) out.push("Add snacks between meals: almonds, a kiwi or dates. Small and easy, and they add up.");
+  if(r.total&&r.eaten<r.total) out.push("When a full plate feels like too much, a smaller portion still counts. Eat something rather than nothing.");
+  GROUPS.forEach(([g,label,,tip])=>{if(!r.groups.has(g))out.push(`Missing ${label.toLowerCase()} this week. ${tip}`)});
+  const useUp=r.notUsed.slice(0,3).map(x=>x.k);
+  if(useUp.length){const m=ranked(m=>m.ing.some(n=>useUp.some(u=>norm(u)===norm(n))))[0];out.push(`Use up ${useUp.join(", ")} next week${m?`, e.g. in ${m.name}`:""}.`)}
+  return out.slice(0,5);
+}
+
+/* ================= Notifications (made by the phone, no internet) ================= */
+const PL=(window.Capacitor&&window.Capacitor.Plugins)||{};
+const LN=PL.LocalNotifications||null, BS=PL.BarcodeScanner||null;
 let notifPerm=LN?"unknown":"unsupported", schedTimer=null;
 async function checkPerm(ask){
   if(!LN) return;
-  try{
-    let p=await LN.checkPermissions();
-    if(p.display!=="granted"&&ask) p=await LN.requestPermissions();
-    notifPerm=p.display;
-  }catch(e){notifPerm="unknown"}
+  try{let p=await LN.checkPermissions();if(p.display!=="granted"&&ask)p=await LN.requestPermissions();notifPerm=p.display}catch(e){notifPerm="unknown"}
 }
-function reminderText(){
+function essentialsText(){
   const miss=missingEssentials();
-  if(!miss.length) return {title:"Room Fridge · all stocked",body:"Every essential is in your fridge. Plan your week's meals."};
-  const shown=miss.slice(0,6).join(", ")+(miss.length>6?` +${miss.length-6} more`:"");
-  return {title:`Room Fridge · ${miss.length} essential${miss.length>1?"s":""} missing`,body:shown,largeBody:"To buy: "+miss.join(", ")};
+  if(!miss.length) return {title:"Room Fridge · all stocked",body:"Every essential is in your fridge. Your week review is ready.",largeBody:"Every essential is in your fridge. Open the app for your week review and plan next week."};
+  return {title:`Room Fridge · ${miss.length} essential${miss.length>1?"s":""} missing`,body:miss.slice(0,6).join(", ")+(miss.length>6?` +${miss.length-6} more`:""),largeBody:"To buy: "+miss.join(", ")+".\nYour week review is ready in the app."};
 }
-function scheduleSoon(){clearTimeout(schedTimer);schedTimer=setTimeout(scheduleReminder,600)}
-async function scheduleReminder(){
+function eatText(slot,i){
+  const today=dow(new Date()), p=i>=today?(S.plan.days[i]||{}):{}, v=p[slot];
+  const planned=v&&meal(v)?meal(v).name:null;
+  if(slot==="s1"||slot==="s2") return {title:"Snack time",body:SNACKS[(i*2+(slot==="s2"?1:0))%SNACKS.length]+"."};
+  if(slot==="b") return {title:"Breakfast time",body:planned?`Planned: ${planned}.`:"Two boiled eggs, cucumber and kiwi, or just yogurt and dates. Small counts."};
+  if(slot==="l"){
+    if((v===undefined||v==="crous")&&S.crousDays.includes(i)) return {title:"Lunch time",body:"CROUS today: take the full tray, main, fruit and dessert, for €1."};
+    return {title:"Lunch time",body:planned?`Planned: ${planned}.`:"Even a tuna sandwich counts. Don't skip it."};
+  }
+  return {title:"Dinner time",body:planned?`Planned: ${planned}.`:"Tired? A 5-minute dinner: hummus wrap, omelette or tuna sandwich."};
+}
+function scheduleSoon(){clearTimeout(schedTimer);schedTimer=setTimeout(scheduleAll,700)}
+async function scheduleAll(){
   if(!LN) return;
-  try{await LN.cancel({notifications:[{id:1}]})}catch(e){}
-  if(!S.reminder.on||notifPerm!=="granted") return;
-  const [h,m]=(S.reminder.time||"18:00").split(":").map(Number);
-  const t=reminderText();
-  try{
-    await LN.schedule({notifications:[{id:1,title:t.title,body:t.body,largeBody:t.largeBody,schedule:{on:{weekday:S.reminder.day,hour:h,minute:m},allowWhileIdle:true}}]});
-  }catch(e){}
+  try{const p=await LN.getPending();if(p.notifications&&p.notifications.length)await LN.cancel({notifications:p.notifications.filter(n=>n.id!==2).map(n=>({id:n.id}))})}catch(e){}
+  if(notifPerm!=="granted") return;
+  const list=[];
+  if(S.reminder.on){const [h,m]=S.reminder.time.split(":").map(Number);const t=essentialsText();list.push({id:1,title:t.title,body:t.body,largeBody:t.largeBody,schedule:{on:{weekday:S.reminder.day,hour:h,minute:m},allowWhileIdle:true}})}
+  if(S.eat.on) SLOTS.forEach(([slot],si)=>{const r=S.eat[slot];if(!r||!r.on)return;const [h,m]=r.t.split(":").map(Number);
+    for(let i=0;i<7;i++){const t=eatText(slot,i);list.push({id:100+si*10+i,title:t.title,body:t.body,schedule:{on:{weekday:capWeekday(i),hour:h,minute:m},allowWhileIdle:true}})}});
+  if(list.length) try{await LN.schedule({notifications:list})}catch(e){}
 }
 async function testNotification(){
-  if(!LN) return;
-  await checkPerm(true);
-  if(notifPerm!=="granted"){render();return}
-  const t=reminderText();
+  if(!LN) return; await checkPerm(true); if(notifPerm!=="granted"){render();return}
+  const t=essentialsText();
   try{await LN.schedule({notifications:[{id:2,title:t.title,body:t.body,largeBody:t.largeBody,schedule:{at:new Date(Date.now()+5000),allowWhileIdle:true}}]})}catch(e){}
 }
 
+/* ================= Barcode scanning (Open Food Facts, free, no account) ================= */
+const GUESS=[[/halloumi/,"Halloumi"],[/labneh/,"Labneh"],[/mozzarella/,"Mozzarella"],[/pesto/,"Pesto"],[/huile d.olive|olive oil/,"Olive oil"],[/olive/,"Olives"],[/houmous|hummus/,"Hummus"],[/falafel/,"Falafel (frozen)"],[/thon|tuna/,"Tuna cans"],[/poulet|chicken|blanc de dinde/,"Halal chicken"],[/haché|hache|minced|steak/,"Halal minced beef"],[/\boeufs?\b|œufs?|\beggs?\b/,"Eggs"],[/\blben\b|lait fermenté|lait ribot|leben|buttermilk/,"Lben"],[/yaourt|yogurt|yoghurt|skyr|fromage blanc/,"Plain yogurt"],[/fromage|cheese|emmental|cheddar|comté/,"Cheese"],[/beurre|butter/,"Butter"],[/\blait\b|\bmilks?\b/,"Milk"],[/tortilla|wrap/,"Wraps"],[/feuille de brick|\bbrick\b|dioul/,"Brick pastry"],[/farine de pois chiche|chickpea flour|gram flour/,"Chickpea flour"],[/pois chiche|chickpea/,"Chickpeas (can)"],[/lentille|lentil/,"Lentils"],[/haricot|beans?\b/,"Beans (can)"],[/\bfrik|freekeh|frikeh/,"Frik"],[/couscous|semoule/,"Couscous"],[/nouille|noodle|ramen/,"Noodles"],[/\briz\b|\brices?\b/,"Rice"],[/pâtes|\bpates\b|pasta|spaghetti|penne|fusilli|tagliatelle/,"Pasta"],[/flocons d.avoine|\boats?\b|oat-flakes|rolled-oats/,"Oats"],[/tomates? concass|pulpe de tomate|tomates? pelée|chopped.tomato|canned-tomato/,"Chopped tomatoes (can)"],[/sauce soja|soy sauce/,"Soy sauce"],[/amande|almond/,"Almonds"],[/dattes?|\bdates\b/,"Dates"],[/raisins secs|raisin/,"Raisins"],[/kiwi/,"Kiwis"],[/concombre|cucumber/,"Cucumber"],[/tomate|tomato/,"Tomatoes"],[/poivron|bell pepper/,"Bell pepper"],[/surgel|frozen-vegetable|frozen veg|poêlée/,"Frozen vegetables"],[/\bmiel\b|honey/,"Honey"],[/pita|\bpain\b|bread|baguette/,"Bread / pita"],[/oignon|onion/,"Onions"],[/\bail\b|garlic/,"Garlic"],[/coriandre|coriander/,"Coriander"],[/citron|lemon/,"Lemon"],[/pomme|apple|poire|pear|orange|clementine|clémentine|fruit/,"Fruit"]];
+const HARAM=/porc|pork|\blard\b|bacon|jambon(?! de dinde)|gélatine|gelatine|gelatin|alcool|alcohol|\bvin\b|wine|\brhum\b|\brum\b|bière|biere|\bbeer\b/i;
+let scan=null;
+function knownNames(){const set=new Map();S.essentials.forEach(n=>set.set(norm(n),n));allMeals().forEach(m=>m.ing.forEach(n=>{if(!set.has(norm(n)))set.set(norm(n),n)}));return [...set.values()].sort((a,b)=>a.localeCompare(b))}
+function guessAs(text){const t=text.toLowerCase();for(const [re,n] of GUESS){if(re.test(t))return n}return ""}
+async function startScan(){
+  if(!BS) return;
+  try{const a=await BS.isGoogleBarcodeScannerModuleAvailable();
+    if(!a.available){scan={state:"loading",note:"Setting up the scanner the first time. This needs internet and takes a few seconds…"};render();await BS.installGoogleBarcodeScannerModule();await new Promise(r=>setTimeout(r,4000))}}catch(e){}
+  let code="";
+  try{const r=await BS.scan();code=(r.barcodes&&r.barcodes[0]&&r.barcodes[0].rawValue)||""}
+  catch(e){scan=String((e&&e.message)||"").match(/cancel/i)?null:{state:"ready",code:"",label:"",as:"",note:"The scanner couldn't start. Try again in a moment, or type the item."};render();return}
+  if(!code){scan=null;render();return}
+  if(S.codes[code]){const c=S.codes[code];scan={state:"ready",code,label:c.n,as:c.k===c.n?"":c.k,note:"You scanned this before.",warn:c.w||""};render();return}
+  scan={state:"loading",code,note:"Looking up the product…"};render();
+  try{
+    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),8000);
+    const res=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,product_name_fr,product_name_en,brands,categories_tags,labels_tags,ingredients_text,ingredients_text_fr`,{signal:ctl.signal});
+    clearTimeout(to);const j=await res.json();
+    if(j.status===1&&j.product){
+      const p=j.product,name=(p.product_name_fr||p.product_name||p.product_name_en||"").trim();
+      const label=[name,(p.brands||"").split(",")[0].trim()].filter(Boolean).join(" · ");
+      const ingr=p.ingredients_text_fr||p.ingredients_text||"", halal=(p.labels_tags||[]).some(t=>/halal/.test(t)), hit=ingr.match(HARAM);
+      scan={state:"ready",code,label,as:guessAs(name+" "+(p.categories_tags||[]).join(" ")),note:label?"":"Found, but it has no name. Type one.",halal,warn:halal?"":hit?`Ingredients mention "${hit[0]}". Check before eating.`:""};
+    } else scan={state:"ready",code,label:"",as:"",note:"Not in the Open Food Facts database yet. Type its name once and I'll remember it."};
+  }catch(e){scan={state:"ready",code,label:"",as:"",note:"No internet right now. Type the name, I'll remember it next time."}}
+  render();
+}
+function confirmScan(again){
+  const label=(document.getElementById("sclabel").value||"").trim(), as=document.getElementById("scas").value;
+  if(!label&&!as) return;
+  const k=as||cap(label);
+  if(scan.code) S.codes[scan.code]={n:label||as,k,w:scan.warn||""};
+  if(!inStock(k)) S.stock.push({k,n:label&&label!==k?label:"",code:scan.code||"",at:key(new Date())});
+  S.firstRun=false; scan=null; save();
+  if(again) startScan();
+}
+
 /* ================= Render ================= */
-let tab="today", mealFilter="all", openMeal=null;
+let tab="today", fTime=0, fCuisine="All", fMode="all", openMeal=null, reviewWhich="this";
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function save(){persist();scheduleSoon();render()}
-
 function render(){
   const now=new Date();
   document.getElementById("dateline").textContent=now.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
   document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
   const n=shoppingList().length,b=document.getElementById("badge");b.hidden=!n;b.textContent=n;
-  document.getElementById("title").textContent={today:"Today",week:"This week",fridge:"Fridge",meals:"Easy meals",settings:"Settings"}[tab];
-  const v=document.getElementById("view");
-  v.innerHTML={today:viewToday,week:viewWeek,fridge:viewFridge,meals:viewMeals,settings:viewSettings}[tab]();
+  document.getElementById("title").textContent={today:"Today",week:"This week",fridge:"Fridge",meals:"Meals",settings:"Settings"}[tab];
+  document.getElementById("view").innerHTML={today:viewToday,week:viewWeek,fridge:viewFridge,meals:viewMeals,settings:viewSettings}[tab]();
 }
-function slotLabel(v){if(!v)return"";if(v==="crous")return"CROUS, €1";if(v==="out")return"Eat out / try a new cuisine";const m=meal(v);return m?m.name:""}
+function slotLabel(v){if(!v||v===true)return"";if(v==="crous")return"CROUS, €1";if(v==="out")return"Eat out / try a new cuisine";const m=meal(v);return m?m.name:""}
+const timeTag=m=>`<span class="tag time">${m.t<60?m.t+" min":"1 hour"}</span>`;
 
 function viewToday(){
-  const now=new Date(),k=key(now),d=dow(now),log=S.log[k]||{},cr=S.crousDays.includes(d),plan=S.plan.days[d]||{};
-  const lunch=plan.l!==undefined?plan.l:(cr?"crous":""), miss=missingEssentials();
+  const now=new Date(),k=key(now),d=dow(now),log=S.log[k]||{},cr=S.crousDays.includes(d),plan=S.plan.days[d]||{},miss=missingEssentials();
   let h="";
-  if(S.firstRun) h+=`<div class="banner crous"><span class="chip-ico">Hi</span><div><b>Start in Fridge</b><span class="small">Add what you have right now, or tap "I have all of these". Then plan your week.</span></div></div>`;
+  if(S.firstRun) h+=`<div class="banner crous"><span class="chip-ico">Hi</span><div><b>Start in Fridge</b><span class="small">Scan or type what you have right now, then plan your week.</span></div></div>`;
   if(cr) h+=`<div class="banner crous"><span class="chip-ico">€1</span><div><b>CROUS lunch today</b><span class="small">Take the full tray: main, fruit and dessert.</span></div></div>`;
-  if((d===5||d===6)&&miss.length&&!S.firstRun) h+=`<div class="banner warn"><span class="chip-ico">${miss.length}</span><div><b>Weekend check: ${miss.length} essential${miss.length>1?"s":""} missing</b><span class="small">${esc(miss.slice(0,4).join(", "))}${miss.length>4?"…":""}</span></div></div>`;
-  const slots=[["b","Breakfast",plan.b?slotLabel(plan.b):"Something small counts: oats, yogurt, a banana"],["l","Lunch",lunch?slotLabel(lunch):"Pick something in Week"],["d","Dinner",plan.d?slotLabel(plan.d):"Pick something in Week"]];
-  h+=`<section style="margin-top:${h?"14px":"6px"}"><div class="label">Did I eat?</div><div class="meals">`+slots.map(([s,n,sub])=>`<button class="meal ${log[s]?"done":""}" data-eat="${s}" aria-pressed="${!!log[s]}"><span class="tick"></span><span class="what"><span>${n}</span><small>${esc(sub)}</small></span></button>`).join("")+`</div>`;
-  const c=["b","l","d"].filter(s=>log[s]).length;
-  h+=`<p class="tip">${c===3?"All three today. That's exactly the goal.":c===0?"Feeling sick after eating? Try smaller portions more often. A small plate still counts.":"Every meal you tick counts. Small is fine."}</p></section>`;
-  h+=`<section><div class="label">This week</div><div class="card week">`+weekDates().map((x,i)=>{const l=S.log[key(x)]||{};return `<div class="${key(x)===k?"today":""}">${DAYS[i].slice(0,2)}<span class="dots">${["b","l","d"].map(s=>`<i class="${l[s]?"on":""}"></i>`).join("")}</span></div>`}).join("")+`</div></section>`;
+  if(d>=5&&miss.length&&!S.firstRun) h+=`<div class="banner warn"><span class="chip-ico">${miss.length}</span><div><b>Weekend check: ${miss.length} essential${miss.length>1?"s":""} missing</b><span class="small">${esc(miss.slice(0,4).join(", "))}${miss.length>4?"…":""}</span></div></div>`;
+  if(d>=5&&!S.firstRun) h+=`<button class="banner crous" data-go="week" style="border:0;text-align:left;width:100%"><span class="chip-ico">✓</span><div><b>Your week review is ready</b><span class="small">What you ate, what you used, and tips for next week.</span></div></button>`;
+  const ate=s=>{const v=log[s];return v&&meal(v)?meal(v).name:v==="crous"?"CROUS, €1":v==="out"?"Ate out":""};
+  const sub0={b:plan.b?slotLabel(plan.b):"Your usual: boiled eggs, cucumber, tomato or kiwi",s1:SNACKS[(d*2)%SNACKS.length],l:(plan.l!==undefined?slotLabel(plan.l):cr?"CROUS, €1":"")||"Pick something in Week",s2:SNACKS[(d*2+1)%SNACKS.length],d:plan.d?slotLabel(plan.d):"Pick something in Week"};
+  const sub={};Object.keys(sub0).forEach(k=>sub[k]=ate(k)||sub0[k]);
+  h+=`<section style="margin-top:${h?"14px":"6px"}"><div class="label">Did I eat?</div><div class="meals">`+SLOTS.map(([s,name,snack])=>`<button class="meal ${snack?"snack":""} ${log[s]?"done":""}" data-eat="${s}" aria-pressed="${!!log[s]}"><span class="tick"></span><span class="what"><span>${name}</span><small>${esc(sub[s])}</small></span></button>`).join("")+`</div>`;
+  const c=MAIN.filter(s=>log[s]).length;
+  h+=`<p class="tip">${c===3?"All three meals today. That's exactly the goal.":c===0?"Feeling sick after eating? Try smaller portions more often. A small plate still counts.":"Every meal you tick counts. Small is fine."}</p></section>`;
+  const unrated=[...new Set(Object.values(log).filter(v=>typeof v==="string"&&meal(v)&&S.rate[v]===undefined))];
+  if(unrated.length) h+=`<section><div class="label">How was it?</div>`+unrated.map(id=>`<div class="card switch"><b style="min-width:0">${esc(meal(id).name)}</b>${rateBtns(id)}</div>`).join("")+`</section>`;
+  const ideas=ranked(m=>m.t<=20).slice(0,3);
+  h+=`<section><div class="label">Ideas for you</div>`+ideas.map(m=>`<button class="idea" data-show="${m.id}"><span style="min-width:0"><b>${esc(m.name)}</b><span class="small muted">${esc(m.c)}${canMake(m)?" · you have everything":""}</span></span>${timeTag(m)}</button>`).join("")+`<p class="small muted">Picked from what you like, eat often and have at home.</p></section>`;
+  h+=`<section><div class="label">This week</div><div class="card week">`+weekDates().map((x,i)=>{const l=S.log[key(x)]||{};return `<div class="${key(x)===k?"today":""}">${DAYS[i].slice(0,2)}<span class="dots">${MAIN.map(s=>`<i class="${l[s]?"on":""}"></i>`).join("")}</span></div>`}).join("")+`</div></section>`;
   return h;
 }
+function rateBtns(id){const r=S.rate[id];return `<span class="rate"><button class="pill ${r===1?"on":""}" data-rate="${id}:1">Like</button><button class="pill ${r===-1?"no":""}" data-rate="${id}:-1">Not for me</button></span>`}
 
 function options(sel,slot){
   let o=`<option value="">${{b:"Breakfast…",l:"Lunch…",d:"Dinner…"}[slot]}</option>`;
   if(slot==="l") o+=`<option value="crous" ${sel==="crous"?"selected":""}>CROUS, €1</option>`;
   o+=`<option value="out" ${sel==="out"?"selected":""}>Eat out / try a new cuisine</option>`;
-  ["nocook","quick","batch"].forEach(e=>{o+=`<optgroup label="${EFF[e]}">`+S.meals.filter(m=>m.e===e).map(m=>`<option value="${m.id}" ${sel===m.id?"selected":""}>${esc(m.name)}</option>`).join("")+`</optgroup>`});
+  const list=ranked(slot==="b"?m=>m.b:null), liked=list.filter(m=>S.rate[m.id]===1), rest=list.filter(m=>S.rate[m.id]!==1);
+  const opt=m=>`<option value="${m.id}" ${sel===m.id?"selected":""}>${esc(m.name)} · ${m.t<60?m.t+" min":"1 h"}</option>`;
+  if(liked.length) o+=`<optgroup label="Liked">${liked.map(opt).join("")}</optgroup>`;
+  [["Quick (up to 15 min)",m=>m.t<=15],["20–30 min",m=>m.t>15&&m.t<=30],["45 min – 1 hour",m=>m.t>30]].forEach(([g,f])=>{const ms=rest.filter(f);if(ms.length)o+=`<optgroup label="${g}">${ms.map(opt).join("")}</optgroup>`});
+  if(sel&&meal(sel)&&S.rate[sel]===-1) o+=opt(meal(sel));
   return o;
+}
+function viewReview(){
+  const ws=weekStartKey(new Date()),lw=new Date(ws+"T12:00:00");lw.setDate(lw.getDate()-7);
+  const r=review(reviewWhich==="this"?ws:key(lw)),sug=suggestions(r);
+  let h=`<section><div class="switch"><div class="label">Week review</div><div class="seg">${[["this","This week"],["last","Last week"]].map(([k,l])=>`<button class="pill ${reviewWhich===k?"on":""}" data-review="${k}">${l}</button>`).join("")}</div></div><div class="card" style="display:flex;flex-direction:column;gap:14px">`;
+  h+=`<div><div class="label">Regular meals</div><p style="margin-top:4px"><b style="font-size:1.25rem">${r.eaten} of ${r.total}</b> <span class="muted">meals eaten${reviewWhich==="this"?" so far":""} · ${r.snacks} snack${r.snacks===1?"":"s"}</span></p><div class="dots" style="margin-top:8px;gap:4px;flex-wrap:wrap">${[...Array(r.total)].map((_,i)=>`<i class="${i<r.eaten?"on":""}" style="width:10px;height:10px"></i>`).join("")}</div></div>`;
+  h+=`<div><div class="label">Variety</div><div class="seg" style="margin-top:6px">${GROUPS.map(([g,l])=>`<span class="pill ${r.groups.has(g)?"on":""}" style="cursor:default">${r.groups.has(g)?"✓ ":""}${l}</span>`).join("")}</div></div>`;
+  h+=`<div><div class="label">Used</div><p class="small" style="margin-top:4px">${r.used.length?esc(r.used.join(", ")):'<span class="muted">Nothing logged yet. Tick meals you planned, or tap "Used up" in Fridge.</span>'}</p></div>`;
+  h+=`<div><div class="label">Bought but not used</div><p class="small" style="margin-top:4px">${r.notUsed.length?esc(r.notUsed.map(x=>x.k).join(", ")):'<span class="muted">Nothing waiting.</span>'}</p></div>`;
+  if(sug.length) h+=`<div><div class="label">For next week</div><ul style="margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px" class="small">${sug.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></div>`;
+  h+=`<p class="small muted" style="border-top:1px solid var(--line);padding-top:10px">This looks at eating regularly and with variety, not at calories. A doctor or dietitian can tell you how much you personally need.</p></div></section>`;
+  return h;
 }
 function viewWeek(){
   const today=dow(new Date());
-  let h=`<section style="margin-top:6px"><div class="label">Plan one week, shop once</div><div class="card" style="padding-block:4px">`;
+  let h=today>=4?viewReview().replace("<section>",'<section style="margin-top:6px">'):"";
+  h+=`<section style="margin-top:${today>=4?"18px":"6px"}"><div class="label">Plan one week, shop once</div><div class="card" style="padding-block:4px">`;
   weekDates().forEach((x,i)=>{
     const p=S.plan.days[i]||{},cr=S.crousDays.includes(i),l=p.l!==undefined?p.l:(cr?"crous":"");
-    h+=`<div class="day"><div class="dn">${DAYS[i]}<small>${x.getDate()}${i===today?" · today":""}</small></div><div class="slots">`+
-      [["b","Bkfst",p.b||""],["l","Lunch",l],["d","Dinner",p.d||""]].map(([s,k,val])=>`<div class="slot"><span class="k">${k}</span><select data-plan="${i}:${s}" class="${val==="crous"?"crous-sel":""}" aria-label="${DAYS[i]} ${k}">${options(val,s)}</select></div>`).join("")+`</div></div>`;
+    h+=`<div class="day"><div class="dn">${DAYS[i]}<small>${x.getDate()}${i===today?" · today":""}</small></div><div class="slots">`+[["b","Bkfst",p.b||""],["l","Lunch",l],["d","Dinner",p.d||""]].map(([s,k,val])=>`<div class="slot"><span class="k">${k}</span><select data-plan="${i}:${s}" class="${val==="crous"?"crous-sel":""}" aria-label="${DAYS[i]} ${k}">${options(val,s)}</select></div>`).join("")+`</div></div>`;
   });
   const n=shoppingList().length;
-  h+=`</div><p class="tip">Pick one batch-cook meal for the weekend. Cook it once, eat it 3–4 times, skip the kitchen on weekdays.</p><button class="btn" data-go="fridge">${n?`See shopping list (${n})`:"Everything's in your fridge"}</button></section>`;
+  h+=`</div><p class="tip">Pick one batch-cook meal for the weekend, like chorba or tajine zitoune. Cook once, eat it 3–4 times.</p><button class="btn" data-go="fridge">${n?`See shopping list (${n})`:"Everything's in your fridge"}</button></section>`;
+  if(today<4) h+=viewReview();
   return h;
 }
 
 function viewFridge(){
   const list=shoppingList();
-  let h=`<section style="margin-top:6px"><div class="label">I just bought</div><div class="addrow"><input type="text" id="bought" placeholder="e.g. eggs, rice, bananas" aria-label="Items you bought" enterkeyhint="done"><button class="btn" data-addbought>Add</button></div><p class="small muted">Separate several items with commas.</p></section>`;
-  h+=`<section><div class="card" style="display:flex;align-items:center;gap:14px"><span class="count ${list.length?"":"zero"}">${list.length}</span><div><b>${list.length?"to buy":"Nothing to buy"}</b><div class="small muted">${list.length?"Missing essentials + what your planned meals need.":"Essentials stocked and planned meals covered."}</div></div></div>`;
-  if(list.length){
-    h+=`<div class="card list" style="padding-block:2px">`+list.map(x=>`<div class="row"><span class="nm">${esc(x.name)}<small>${esc(x.why)}</small></span><button class="tog get" data-buy="${esc(x.name)}">Bought</button></div>`).join("")+`</div>`;
-    h+=`<div class="addrow"><button class="btn ghost" style="flex:1" data-copy>Copy list</button><button class="btn ghost" style="flex:1" data-allin>I have all of these</button></div>`;
+  let h=`<section style="margin-top:6px"><div class="label">I just bought</div>`;
+  if(BS) h+=`<button class="btn" data-scan style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M13 9v6M17 9v6"/></svg>Scan a product barcode</button>`;
+  if(scan){
+    if(scan.state==="loading") h+=`<div class="card"><p class="small muted">${esc(scan.note)}</p></div>`;
+    else h+=`<div class="card" style="display:flex;flex-direction:column;gap:10px;border-color:var(--green)"><div class="label">Scanned product${scan.code?` · ${esc(scan.code)}`:""}</div>${scan.note?`<p class="small muted">${esc(scan.note)}</p>`:""}${scan.halal?`<p class="small" style="color:var(--green);font-weight:700">Halal label on the package</p>`:""}${scan.warn?`<p class="status bad">${esc(scan.warn)}</p>`:""}
+      <input type="text" id="sclabel" value="${esc(scan.label||"")}" placeholder="Product name" aria-label="Product name">
+      <label class="small muted" for="scas">Counts as</label>
+      <select id="scas"><option value="">Just this product</option>${knownNames().map(n=>`<option ${norm(n)===norm(scan.as||"")?"selected":""}>${esc(n)}</option>`).join("")}</select>
+      <div class="addrow"><button class="btn" style="flex:1" data-scanok>Add</button><button class="btn ghost" style="flex:1" data-scanagain>Add & scan next</button></div><button class="btn ghost" data-scancancel>Cancel</button></div>`;
   }
+  h+=`<div class="addrow"><input type="text" id="bought" placeholder="${BS?"Or type: eggs, wraps, kiwis":"e.g. eggs, wraps, kiwis"}" aria-label="Items you bought" enterkeyhint="done"><button class="btn" data-addbought>Add</button></div><p class="small muted">Separate several items with commas.</p></section>`;
+  h+=`<section><div class="card" style="display:flex;align-items:center;gap:14px"><span class="count ${list.length?"":"zero"}">${list.length}</span><div><b>${list.length?"to buy":"Nothing to buy"}</b><div class="small muted">${list.length?"Missing essentials + what your planned meals need.":"Essentials stocked and planned meals covered."}</div></div></div>`;
+  if(list.length) h+=`<div class="card list" style="padding-block:2px">`+list.map(x=>`<div class="row"><span class="nm">${esc(x.name)}<small>${esc(x.why)}</small></span><button class="tog get" data-buy="${esc(x.name)}">Bought</button></div>`).join("")+`</div><div class="addrow"><button class="btn ghost" style="flex:1" data-copy>Copy list</button><button class="btn ghost" style="flex:1" data-allin>I have all of these</button></div>`;
   h+=`</section><section><div class="label">In my fridge (${S.stock.length})</div>`;
-  if(!S.stock.length) h+=`<p class="empty">Empty for now. Add what you buy above, and tap "Used up" when something runs out.</p>`;
-  else h+=`<div class="card list" style="padding-block:2px">`+[...S.stock].sort((a,b)=>a.localeCompare(b)).map(n=>`<div class="row"><span class="nm">${esc(n)}</span>${isEssential(n)?`<span class="ess">Essential</span>`:""}<button class="tog used" data-used="${esc(n)}">Used up</button></div>`).join("")+`</div>`;
-  h+=`</section>`;
-  return h;
+  h+=S.stock.length?`<div class="card list" style="padding-block:2px">`+[...S.stock].sort((a,b)=>a.k.localeCompare(b.k)).map(x=>`<div class="row"><span class="nm">${esc(x.k)}${x.n?`<small>${esc(x.n)}</small>`:""}</span>${isEssential(x.k)?`<span class="ess">Essential</span>`:""}<button class="tog used" data-used="${esc(x.k)}">Used up</button></div>`).join("")+`</div>`:`<p class="empty">Empty for now. Add what you buy above, and tap "Used up" when something runs out.</p>`;
+  return h+`</section>`;
 }
 
 function viewMeals(){
-  let h=`<section style="margin-top:6px"><div class="filters">`+[["all","All"],["ready","Can make now"],["nocook","No cooking"],["quick","10 min"],["batch","Batch cook"]].map(([k,l])=>`<button class="pill ${mealFilter===k?"on":""}" data-filter="${k}">${l}</button>`).join("")+`</div>`;
-  const ms=S.meals.filter(m=>mealFilter==="all"||(mealFilter==="ready"?canMake(m):m.e===mealFilter));
-  if(!ms.length) h+=`<p class="empty">Nothing you can make with what's in your fridge. Check the shopping list.</p>`;
+  const hidden=allMeals().filter(m=>S.rate[m.id]===-1);
+  let h=`<section style="margin-top:6px"><div class="label">Ready in</div><div class="scroller">`+TIMEF.map(([t,l])=>`<button class="pill ${fTime===t?"on":""}" data-ftime="${t}">${t?"Up to "+l:l}</button>`).join("")+`</div>`;
+  h+=`<div class="label">Cuisine</div><div class="scroller">`+["All",...CUISINES].map(c=>`<button class="pill ${fCuisine===c?"on":""}" data-fcuisine="${esc(c)}">${esc(c)}</button>`).join("")+`</div>`;
+  h+=`<div class="scroller">`+[["all","Best for me"],["ready","Can make now"],["liked","Liked"],["breakfast","Breakfast"],["batch","Batch cook"]].concat(hidden.length?[["hidden",`Not for me (${hidden.length})`]]:[]).map(([k,l])=>`<button class="pill ${fMode===k?"on":""}" data-fmode="${k}">${l}</button>`).join("")+`</div></section>`;
+  const f=m=>(!fTime||m.t<=fTime)&&(fCuisine==="All"||m.c===fCuisine)&&(fMode!=="ready"||canMake(m))&&(fMode!=="liked"||S.rate[m.id]===1)&&(fMode!=="breakfast"||m.b)&&(fMode!=="batch"||m.batch);
+  const ms=fMode==="hidden"?hidden:ranked(f);
+  h+=`<section>`+(ms.length?"":`<p class="empty">No meal matches these filters. Try a longer time or another cuisine.</p>`);
   ms.forEach(m=>{
-    const open=openMeal===m.id;
-    h+=`<div class="mcard"><button data-open="${m.id}" aria-expanded="${open}"><span class="mtop"><span class="mname">${esc(m.name)}</span><span class="eff ${m.e}">${EFF[m.e]}</span></span><span class="ings">${m.ing.map(n=>inStock(n)?esc(n):`<span class="miss">${esc(n)}</span>`).join(" · ")}</span>${canMake(m)?`<span class="ready">You have everything</span>`:""}</button>`+
-      (open?`<div class="mbody"><ol>${m.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>${m.custom?`<button class="btn ghost" data-delmeal="${m.id}">Remove this meal</button>`:""}</div>`:"")+`</div>`;
+    const open=openMeal===m.id, r=S.rate[m.id];
+    h+=`<div class="mcard"><button data-open="${m.id}" aria-expanded="${open}"><span class="mtop"><span class="mname">${esc(m.name)}</span>${timeTag(m)}</span><span class="tags"><span class="tag">${esc(m.c)}</span>${m.batch?`<span class="tag batch">Batch cook</span>`:""}${r===1?`<span class="tag fav">Liked</span>`:""}${canMake(m)?`<span class="tag fav">You have everything</span>`:""}</span><span class="ings">${m.ing.map(n=>inStock(n)?esc(n):`<span class="miss">${esc(n)}</span>`).join(" · ")}</span></button>`+
+      (open?`<div class="mbody"><ol>${m.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol><div class="switch"><span class="small muted">Rate it</span>${rateBtns(m.id)}</div>${m.custom?`<button class="btn ghost" data-delmeal="${m.id}">Remove this meal</button>`:""}</div>`:"")+`</div>`;
   });
   h+=`</section><section><div class="label">Add your own meal</div><div class="card" style="display:flex;flex-direction:column;gap:8px">
-    <input type="text" id="mname" placeholder="Meal name" aria-label="Meal name">
-    <select id="meff" aria-label="Effort"><option value="nocook">No cooking</option><option value="quick">10 min</option><option value="batch">Batch cook</option></select>
+    <input type="text" id="mname" placeholder="Meal name (e.g. Mum's chorba)" aria-label="Meal name">
+    <div class="addrow"><select id="mcuis" aria-label="Cuisine">${CUISINES.map(c=>`<option>${c}</option>`).join("")}</select><select id="mtime" aria-label="Time">${[5,10,15,20,30,45,60].map(t=>`<option value="${t}">${t<60?t+" min":"1 hour"}</option>`).join("")}</select></div>
     <input type="text" id="ming" placeholder="Ingredients, comma separated" aria-label="Ingredients">
     <input type="text" id="msteps" placeholder="Steps, separated by ; (optional)" aria-label="Steps">
     <button class="btn" data-addmeal>Add meal</button></div></section>`;
@@ -303,13 +464,14 @@ function viewSettings(){
   let status="";
   if(notifPerm==="unsupported") status=`<p class="status">Notifications work in the installed Android app.</p>`;
   else if(notifPerm==="denied") status=`<p class="status bad">Notifications are blocked. Turn them on in Android Settings → Apps → Room Fridge → Notifications.</p>`;
-  else if(notifPerm==="granted"&&r.on) status=`<p class="status">On. Next reminder: ${WEEKDAYS.find(w=>w[0]===r.day)[1]} at ${esc(r.time)}.</p>`;
-  let h=`<section style="margin-top:6px"><div class="label">Weekly reminder</div><div class="card" style="display:flex;flex-direction:column;gap:12px">
-    <div class="switch"><span><b>Missing essentials alert</b><br><span class="small muted">Lists what's missing from your essentials.</span></span><button class="sw ${r.on?"on":""}" data-remind aria-pressed="${r.on}" aria-label="Weekly reminder"></button></div>
-    <div class="addrow"><select id="rday" aria-label="Reminder day">${WEEKDAYS.map(([v,n])=>`<option value="${v}" ${r.day===v?"selected":""}>${n}</option>`).join("")}</select><input type="time" id="rtime" value="${esc(r.time)}" aria-label="Reminder time" style="flex:0 0 120px"></div>
-    ${status}
-    ${LN?`<button class="btn ghost" data-test>Send a test notification</button>`:""}
+  let h=`<section style="margin-top:6px"><div class="label">Reminders to eat</div>${status}<div class="card" style="display:flex;flex-direction:column;gap:6px">
+    <div class="switch"><span><b>Meal & snack reminders</b><br><span class="small muted">Every day, with snack ideas and your planned meal.</span></span><button class="sw ${S.eat.on?"on":""}" data-eatall aria-pressed="${S.eat.on}" aria-label="Meal and snack reminders"></button></div>
+    ${S.eat.on?`<div class="list" style="margin-top:6px">`+SLOTS.map(([s,name])=>`<div class="remrow"><span>${name}</span><input type="time" id="et_${s}" value="${esc(S.eat[s].t)}" aria-label="${name} time"><button class="sw ${S.eat[s].on?"on":""}" data-eatone="${s}" aria-pressed="${S.eat[s].on}" aria-label="${name} reminder"></button></div>`).join("")+`</div>`:""}
   </div></section>`;
+  h+=`<section><div class="label">Weekly shopping reminder</div><div class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div class="switch"><span><b>Missing essentials alert</b><br><span class="small muted">Lists what's missing from your essentials.</span></span><button class="sw ${r.on?"on":""}" data-remind aria-pressed="${r.on}" aria-label="Weekly reminder"></button></div>
+    <div class="addrow"><select id="rday" aria-label="Reminder day">${WEEKDAYS.map(([v,n])=>`<option value="${v}" ${r.day===v?"selected":""}>${n}</option>`).join("")}</select><input type="time" id="rtime" value="${esc(r.time)}" aria-label="Reminder time" style="flex:0 0 132px"></div>
+    ${LN?`<button class="btn ghost" data-test>Send a test notification</button>`:""}</div></section>`;
   h+=`<section><div class="label">My essentials (${S.essentials.length})</div><p class="small muted">Things you always want at home. The reminder and shopping list check these.</p>
     <div class="addrow"><input type="text" id="newess" placeholder="Add an essential" aria-label="New essential" enterkeyhint="done"><button class="btn" data-addess>Add</button></div>
     <div class="card list" style="padding-block:2px">`+S.essentials.map((e,i)=>`<div class="row"><span class="nm">${esc(e)}<small>${inStock(e)?"In fridge":"Missing"}</small></span><button class="x" data-delless="${i}" aria-label="Remove ${esc(e)}">×</button></div>`).join("")+`</div></section>`;
@@ -323,19 +485,33 @@ const V=document.getElementById("view");
 V.addEventListener("click",async e=>{
   const t=e.target.closest("button");if(!t)return;const d=t.dataset;
   if(d.go){tab=d.go;render();window.scrollTo(0,0);return}
-  if(d.eat){const k=key(new Date());S.log[k]=S.log[k]||{};S.log[k][d.eat]=!S.log[k][d.eat];const ks=Object.keys(S.log).sort();while(ks.length>120)delete S.log[ks.shift()];return save()}
+  if(d.show){tab="meals";fTime=0;fCuisine="All";fMode="all";openMeal=d.show;render();const el=V.querySelector(`[data-open="${d.show}"]`);if(el)el.scrollIntoView({block:"center"});return}
+  if(d.eat){const now=new Date(),k=key(now),i=dow(now),p=S.plan.days[i]||{};S.log[k]=S.log[k]||{};
+    let planned=p[d.eat];if(d.eat==="l"&&planned===undefined&&S.crousDays.includes(i))planned="crous";
+    S.log[k][d.eat]=S.log[k][d.eat]?false:(planned||true);
+    const ks=Object.keys(S.log).sort();while(ks.length>120)delete S.log[ks.shift()];return save()}
+  if(d.rate){const [id,v]=d.rate.split(":");S.rate[id]=S.rate[id]===+v?0:+v;return save()}
   if(d.addbought!==undefined){const v=document.getElementById("bought").value;if(!v.trim())return;addToStock(v.split(","));S.firstRun=false;return save()}
   if(d.buy){addToStock([d.buy]);S.firstRun=false;return save()}
   if(d.allin!==undefined){addToStock(shoppingList().map(x=>x.name));S.firstRun=false;return save()}
-  if(d.used){S.stock=S.stock.filter(x=>norm(x)!==norm(d.used));return save()}
+  if(d.used){markUsed(d.used);S.stock=S.stock.filter(x=>norm(x.k)!==norm(d.used));return save()}
+  if(d.scan!==undefined)return startScan();
+  if(d.scanok!==undefined)return confirmScan(false);
+  if(d.scanagain!==undefined)return confirmScan(true);
+  if(d.scancancel!==undefined){scan=null;return render()}
+  if(d.review){reviewWhich=d.review;return render()}
   if(d.copy!==undefined){const txt="Shopping list:\n"+shoppingList().map(x=>"- "+x.name).join("\n");try{await navigator.clipboard.writeText(txt);t.textContent="Copied"}catch(err){t.textContent="Couldn't copy"}setTimeout(()=>{t.textContent="Copy list"},1500);return}
-  if(d.filter){mealFilter=d.filter;return render()}
+  if(d.ftime!==undefined){fTime=+d.ftime;return render()}
+  if(d.fcuisine){fCuisine=d.fcuisine;return render()}
+  if(d.fmode){fMode=d.fmode;return render()}
   if(d.open){openMeal=openMeal===d.open?null:d.open;return render()}
   if(d.addmeal!==undefined){const name=document.getElementById("mname").value.trim();if(!name)return;
     const ing=document.getElementById("ming").value.split(",").map(s=>s.trim()).filter(Boolean).map(cap);
     const steps=document.getElementById("msteps").value.split(";").map(s=>s.trim()).filter(Boolean);
-    S.meals.push({id:"m"+Date.now().toString(36),name,e:document.getElementById("meff").value,ing,steps:steps.length?steps:["Your recipe."],custom:true});return save()}
-  if(d.delmeal){S.meals=S.meals.filter(m=>m.id!==d.delmeal);Object.values(S.plan.days).forEach(x=>["b","l","d"].forEach(k=>{if(x[k]===d.delmeal)delete x[k]}));openMeal=null;return save()}
+    S.custom.push({id:"u"+Date.now().toString(36),name,c:document.getElementById("mcuis").value,t:+document.getElementById("mtime").value,ing,steps:steps.length?steps:["Your recipe."],custom:true});return save()}
+  if(d.delmeal){S.custom=S.custom.filter(m=>m.id!==d.delmeal);Object.values(S.plan.days).forEach(x=>Object.keys(x).forEach(k=>{if(x[k]===d.delmeal)delete x[k]}));openMeal=null;return save()}
+  if(d.eatall!==undefined){S.eat.on=!S.eat.on;if(S.eat.on)await checkPerm(true);return save()}
+  if(d.eatone){S.eat[d.eatone].on=!S.eat[d.eatone].on;return save()}
   if(d.remind!==undefined){S.reminder.on=!S.reminder.on;if(S.reminder.on)await checkPerm(true);return save()}
   if(d.test!==undefined){t.textContent="Arriving in 5 seconds…";await testNotification();return}
   if(d.addess!==undefined){const v=document.getElementById("newess").value.trim();if(!v||isEssential(v))return;S.essentials.push(cap(v));return save()}
@@ -347,12 +523,13 @@ V.addEventListener("change",e=>{
   if(s.dataset&&s.dataset.plan){const [i,slot]=s.dataset.plan.split(":");S.plan.days[i]=S.plan.days[i]||{};S.plan.days[i][slot]=s.value;return save()}
   if(s.id==="rday"){S.reminder.day=+s.value;return save()}
   if(s.id==="rtime"&&s.value){S.reminder.time=s.value;return save()}
+  if(s.id&&s.id.startsWith("et_")&&s.value){S.eat[s.id.slice(3)].t=s.value;return save()}
 });
 V.addEventListener("keydown",e=>{if(e.key!=="Enter")return;if(e.target.id==="bought")V.querySelector("[data-addbought]").click();if(e.target.id==="newess")V.querySelector("[data-addess]").click()});
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){S=normalize(S);persist();render()}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){S=normalize(S);persist();scheduleSoon();render()}});
 
 render();
-(async()=>{await checkPerm(S.reminder.on);persist();scheduleReminder();render()})();
+(async()=>{await checkPerm(S.reminder.on||S.eat.on);persist();scheduleAll();render()})();
 </script>
 </body>
 </html>

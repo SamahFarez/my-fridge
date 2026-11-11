@@ -3,6 +3,6 @@
   "appName": "Room Fridge",
   "webDir": "www",
   "plugins": {
-    "LocalNotifications": { "iconColor": "#1E5B42" }
+    "LocalNotifications": { "iconColor": "#B0517A" }
   }
 }
