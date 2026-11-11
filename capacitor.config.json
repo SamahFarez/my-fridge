@@ -1,0 +1,8 @@
+{
+  "appId": "app.roomfridge",
+  "appName": "Room Fridge",
+  "webDir": "www",
+  "plugins": {
+    "LocalNotifications": { "iconColor": "#1E5B42" }
+  }
+}
